@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:blur/blur.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math';
 
 void main() {
@@ -14,9 +14,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'วาทะสลิ่มสุดเจ๋ง',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 255, 247, 93)),
+        colorSchemeSeed: Colors.yellow,
         useMaterial3: true,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        colorSchemeSeed: Colors.yellow,
+        useMaterial3: true,
+        brightness: Brightness.light,
       ),
       home: const MyHomePage(),
     );
@@ -30,11 +35,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-  double blurAmount = 0.0;
+class _MyHomePageState extends State<MyHomePage> {
   final List<String> watalist = [
     'รู้มั้ยว่าพ่อทำอะไรบ้าง',
     'พวกชังชาติ',
@@ -134,61 +135,51 @@ class _MyHomePageState extends State<MyHomePage>
     'อีสามกีีบปัญญาอ่อน',
   ];
   String wataNow = '';
+  bool blurState = true;
+
+  void randWata() {
+    setState(() {
+      Random random = Random();
+      blurState = true;
+      Future.delayed(
+        50.ms,
+        () => wataNow = watalist[random.nextInt(watalist.length)],
+      );
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _animation = Tween<double>(begin: 10, end: 0).animate(_animationController);
-    randWata();
-  }
-
-  void randWata() {
     Random random = Random();
     wataNow = watalist[random.nextInt(watalist.length)];
-    _animationController.reset();
-    _animationController.forward();
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
-          Container(
+          Card(
+            elevation: 1,
             margin: const EdgeInsets.only(right: 20),
-            padding: const EdgeInsets.symmetric(
-              vertical: 5,
-              horizontal: 7.5,
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 5,
+                horizontal: 7.5,
+              ),
+              child: Text(
+                'Cr.narze',
+                style: TextStyle(
+                    fontSize: 15,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+              ),
             ),
-            decoration: BoxDecoration(
-              color: Colors.yellow[600],
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x40000000),
-                  offset: Offset(2, 2),
-                  blurRadius: 3,
-                ),
-              ],
-            ),
-            child: const Text(
-              'Cr.narze',
-              style: TextStyle(fontSize: 15),
-            ),
-          )
+          ),
         ],
-        backgroundColor: const Color.fromARGB(255, 249, 255, 87),
         title: const Text(
           "วาทะสลิ่มสุดเจ๋ง",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -202,50 +193,50 @@ class _MyHomePageState extends State<MyHomePage>
           ),
         ),
         child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 23),
-            decoration: BoxDecoration(
-              color: Colors.yellow[300],
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              boxShadow: const [
-                BoxShadow(
-                  offset: Offset(4, 4),
-                  color: Color(0x80000000),
-                  blurRadius: 10,
-                )
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'วาทะสลิ่ม: ',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: AnimatedBuilder(
-                    animation: _animation,
-                    builder: (context, child) => Blur(
-                      colorOpacity: 0,
-                      blur: _animation.value,
-                      blurColor: Colors.transparent,
-                      child: Text(
-                        '"$wataNow"',
-                        style: TextStyle(
-                          fontSize: 22.5,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
+          child: Card(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            elevation: 5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 23),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'วาทะสลิ่ม: ',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer
                     ),
                   ),
-                ),
-              ],
+                  Text(
+                    '"$wataNow"',
+                    style: const TextStyle(
+                      fontSize: 22.5,
+                    ),
+                  )
+                      .animate(
+                        target: blurState ? 1 : 0,
+                        onComplete: (controller) {
+                          if (blurState) {
+                            setState(() => blurState = false);
+                          }
+                        },
+                      )
+                      .blur(
+                          begin: const Offset(0, 0),
+                          end: const Offset(5, 5),
+                          curve: Curves.easeIn,
+                          duration: blurState ? 100.ms : 500.ms)
+                      .fade(
+                          begin: 1,
+                          end: .5,
+                          curve: Curves.easeIn,
+                          duration: blurState ? 100.ms : 500.ms),
+                ],
+              ),
             ),
           ),
         ),
@@ -253,15 +244,13 @@ class _MyHomePageState extends State<MyHomePage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: randWata,
         tooltip: 'Generate',
-        label: Text(
+        label: const Text(
           "Generate วาทะสลิ่ม",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 17,
-            color: Theme.of(context).primaryColor,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 249, 255, 87),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
